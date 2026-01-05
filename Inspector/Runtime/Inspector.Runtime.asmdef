@@ -1,0 +1,7 @@
+﻿{
+  "name": "Inspector.Runtime",
+  "references": [
+    "LayerSystem.Runtime"
+  ],
+  "autoReferenced": true
+}

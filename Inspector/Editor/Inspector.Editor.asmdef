@@ -1,0 +1,5 @@
+﻿{
+  "name": "Inspector.Editor",
+  "references": ["Inspector.Runtime", "LayerSystem.Runtime", "Utils.Editor"],
+  "includePlatforms": ["Editor"]
+}

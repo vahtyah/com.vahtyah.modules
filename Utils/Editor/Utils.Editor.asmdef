@@ -1,0 +1,4 @@
+﻿{
+  "name": "Utils.Editor",
+  "includePlatforms": ["Editor"]
+}
