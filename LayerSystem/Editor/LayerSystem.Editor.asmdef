@@ -1,8 +1,7 @@
 ﻿{
-  "name": "Inspector.Runtime",
+  "name": "LayerSystem.Editor",
   "rootNamespace": "VahTyah",
-  "references": [],
-  "includePlatforms": [],
+  "includePlatforms": ["Editor"],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,

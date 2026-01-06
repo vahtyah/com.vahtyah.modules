@@ -14,7 +14,6 @@ namespace VahTyah
                 return;
             }
 
-            // Vẽ từng layer theo thứ tự (layer sau đè lên layer trước)
             foreach (Layer layer in config.layers)
             {
                 if (!layer.enabled)

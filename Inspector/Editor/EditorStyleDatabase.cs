@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VahTyah;
 using UnityEditor;
 using UnityEngine;
 
@@ -88,7 +87,7 @@ namespace VahTyah
 
             private static GUIStyle CreateLabelStyle()
             {
-                GUIStyle labelStyle = new GUIStyle(EditorStyles.boldLabel);
+                GUIStyle labelStyle = new GUIStyle(UnityEditor.EditorStyles.boldLabel);
                 labelStyle.fontSize = 12;
                 labelStyle.alignment = TextAnchor.MiddleLeft;
                 labelStyle.normal.textColor = new Color(0.85f, 0.85f, 0.85f, 1f);

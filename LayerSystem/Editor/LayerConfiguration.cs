@@ -97,10 +97,6 @@ namespace VahTyah
         [SerializeField] public Vector4 borderWidth = Vector4.zero;
         [SerializeField] public Vector4 borderRadius = Vector4.zero;
 
-        public Layer()
-        {
-        }
-
         public static Layer CreateSolidColor(Color color, Padding padding = null)
         {
             Layer layer = new Layer();
