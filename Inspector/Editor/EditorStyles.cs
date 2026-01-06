@@ -6,22 +6,29 @@ namespace VahTyah
     public static class EditorStyles
     {
         private static EditorStyleDatabase styleDatabase;
-        public static EditorCustomStyle Style;
+        private static EditorCustomStyle Style;
 
         static EditorStyles()
         {
-            styleDatabase = EditorUtils.GetAsset<EditorStyleDatabase>();
-            Style = styleDatabase.GetStyle();
+            EnsureStyleDatabaseExists();
         }
 
         public static void EnsureStyleDatabaseExists()
         {
+            if(Style != null) return;
+            
             if (styleDatabase == null)
             {
                 styleDatabase = EditorUtils.GetAsset<EditorStyleDatabase>();
             }
+            
+            Style = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
+        }
 
-            Style ??= styleDatabase.GetStyle();
+        public static EditorCustomStyle GetStyle()
+        {
+            EnsureStyleDatabaseExists();
+            return Style;
         }
     }
 }

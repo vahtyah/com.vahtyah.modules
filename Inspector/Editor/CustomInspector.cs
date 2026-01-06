@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,11 +21,14 @@ namespace VahTyah
 
     public class CustomInspector : Editor
     {
+        private List<Type> nestedClassTypes;
+        
         private List<PropertyGroup> propertyGroups;
         private List<SerializedProperty> ungroupedProperties;
         private SerializedProperty scriptProperty;
 
-        private List<Type> nestedClassTypes;
+        private List<(MethodInfo method, ButtonAttribute attribute)> buttonMethods;
+        private ButtonDrawer buttonDrawer;
 
         protected virtual void OnEnable()
         {
@@ -36,7 +39,10 @@ namespace VahTyah
             nestedClassTypes = GetClassNestedTypes(target.GetType());
 
             CollectProperties();
+            CollectButtonMethods();
             EditorStyles.EnsureStyleDatabaseExists();
+            
+            buttonDrawer = new ButtonDrawer();
         }
 
         private void CollectProperties()
@@ -111,7 +117,63 @@ namespace VahTyah
                 group.Draw();
             }
 
+            DrawButtons();
+
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void CollectButtonMethods()
+        {
+            buttonMethods = new List<(MethodInfo, ButtonAttribute)>();
+
+            const BindingFlags flags = BindingFlags.Instance |
+                                       BindingFlags.Public |
+                                       BindingFlags.NonPublic;
+
+            foreach (Type type in nestedClassTypes)
+            {
+                MethodInfo[] methods = type.GetMethods(flags);
+                foreach (MethodInfo method in methods)
+                {
+                    ButtonAttribute buttonAttr = method.GetCustomAttribute<ButtonAttribute>();
+                    if (buttonAttr != null)
+                    {
+                        // Validate that the method has no parameters
+                        if (method.GetParameters().Length == 0)
+                        {
+                            buttonMethods.Add((method, buttonAttr));
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Method '{method.Name}' has ButtonAttribute but requires parameters. Only parameterless methods are supported.");
+                        }
+                    }
+                }
+            }
+
+            buttonMethods = buttonMethods.OrderBy(b => b.Item2.Order).ToList();
+        }
+
+        private void DrawButtons()
+        {
+            if (buttonMethods == null || buttonMethods.Count == 0) return;
+            if (buttonDrawer == null) buttonDrawer = new ButtonDrawer();
+
+            EditorGUILayout.Space(5);
+
+            for (var i = 0; i < buttonMethods.Count; i++)
+            {
+                var buttonTuple = buttonMethods[i];
+                var method = buttonTuple.Item1;
+                var attribute = buttonTuple.Item2;
+
+                buttonDrawer.DrawButton(method, attribute, targets);
+                
+                if (i < buttonMethods.Count - 1)
+                {
+                    buttonDrawer.DrawSpacing();
+                }
+            }
         }
 
         #region Reflection Helpers
