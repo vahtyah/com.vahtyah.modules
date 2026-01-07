@@ -7,5 +7,12 @@
   "author": {
     "name": "Tuan Van",
     "url": "https://github.com/vahtyah"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Editor Styles Example",
+      "description": "Example EditorStyles asset that you can customize",
+      "path":  "EditorStyle/Editor"
+    }
+  ]
 }

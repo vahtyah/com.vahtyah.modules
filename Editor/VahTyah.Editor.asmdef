@@ -1,9 +1,13 @@
 ﻿{
-  "name": "Inspector.Runtime",
+  "name": "VahTyah.Editor",
   "rootNamespace": "VahTyah",
-  "references": [],
-  "includePlatforms": [],
-  "excludePlatforms": [],
+  "references":  [
+    "VahTyah.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms":  [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
   "precompiledReferences": [],

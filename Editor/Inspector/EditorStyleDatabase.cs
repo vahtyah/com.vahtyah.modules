@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace VahTyah
 {
-    // [CreateAssetMenu(fileName = "EditorStyles", menuName = "CustomEditor/EditorStyles", order = 1)]
+    [CreateAssetMenu(fileName = "EditorStyles", menuName = "CustomEditor/EditorStyles", order = 1)]
     public class EditorStyleDatabase : ScriptableObject
     {
-        [SerializeField, BoxGroup("Components", "Components") ] private int defaultStyleIndex = 0;
-        [SerializeField, BoxGroup("Components", "Components") ] private List<EditorCustomStyle> styles = new List<EditorCustomStyle>();
+        [SerializeField] private int defaultStyleIndex = 0;
+        [SerializeField] private List<EditorCustomStyle> styles = new List<EditorCustomStyle>();
 
         public void AddDefaultStyle()
         {
@@ -91,7 +91,8 @@ namespace VahTyah
             private static LayerConfiguration CreateDarkBackgroundStyle()
             {
                 LayerConfiguration config = new LayerConfiguration(3);
-                config.layers[0] = Layer.CreateRoundedRect(new Color(0.15f, 0.15f, 0.15f, 1f), 4f, new Padding(0, 1, 1, 0));
+                config.layers[0] =
+                    Layer.CreateRoundedRect(new Color(0.15f, 0.15f, 0.15f, 1f), 4f, new Padding(0, 1, 1, 0));
                 config.layers[1] = Layer.CreateRoundedRect(new Color(0.22f, 0.22f, 0.22f, 1f), 4f);
                 config.layers[2] = Layer.CreateBorder(new Color(0.35f, 0.35f, 0.35f, 1f), 1f, 4f);
                 return config;
@@ -99,8 +100,9 @@ namespace VahTyah
 
             private static GUIStyle CreateLabelStyle()
             {
-                GUIStyle labelStyle = new GUIStyle(UnityEditor.EditorStyles.boldLabel);
+                GUIStyle labelStyle = new GUIStyle(); // Create from scratch
                 labelStyle.fontSize = 12;
+                labelStyle.fontStyle = FontStyle.Bold;
                 labelStyle.alignment = TextAnchor.MiddleLeft;
                 labelStyle.normal.textColor = new Color(0.85f, 0.85f, 0.85f, 1f);
                 labelStyle.padding = new RectOffset(0, 0, 0, 0);
@@ -137,8 +139,9 @@ namespace VahTyah
             private static LayerConfiguration CreateButtonNormalStyle()
             {
                 LayerConfiguration config = new LayerConfiguration(3);
-                config.layers[0] = Layer.CreateRoundedRect(new Color(0.15f, 0.15f, 0.15f, 1f), 4f, new Padding(0, 1, 1, 0));
-                config.layers[1] = Layer.CreateRoundedRect(new Color(0.25f, 0.25f, 0.25f, 1f), 4f);
+                config.layers[0] =
+                    Layer.CreateRoundedRect(new Color(0f, 0f, 0f, 0.15f), 4f, new Padding(0, 1, 1, 0));
+                config.layers[1] = Layer.CreateRoundedRect(new Color(0f, 0f, 0f, 0.15f), 4f);
                 config.layers[2] = Layer.CreateBorder(new Color(0.4f, 0.4f, 0.4f, 1f), 1f, 4f);
                 return config;
             }
@@ -146,7 +149,8 @@ namespace VahTyah
             private static LayerConfiguration CreateButtonHoverStyle()
             {
                 LayerConfiguration config = new LayerConfiguration(3);
-                config.layers[0] = Layer.CreateRoundedRect(new Color(0.2f, 0.2f, 0.2f, 1f), 4f, new Padding(0, 1, 1, 0));
+                config.layers[0] =
+                    Layer.CreateRoundedRect(new Color(0.2f, 0.2f, 0.2f, 1f), 4f, new Padding(0, 1, 1, 0));
                 config.layers[1] = Layer.CreateRoundedRect(new Color(0.3f, 0.3f, 0.3f, 1f), 4f);
                 config.layers[2] = Layer.CreateBorder(new Color(0.5f, 0.5f, 0.5f, 1f), 1f, 4f);
                 return config;
@@ -155,7 +159,8 @@ namespace VahTyah
             private static LayerConfiguration CreateButtonActiveStyle()
             {
                 LayerConfiguration config = new LayerConfiguration(3);
-                config.layers[0] = Layer.CreateRoundedRect(new Color(0.1f, 0.1f, 0.1f, 1f), 4f, new Padding(0, 1, 1, 0));
+                config.layers[0] =
+                    Layer.CreateRoundedRect(new Color(0.1f, 0.1f, 0.1f, 1f), 4f, new Padding(0, 1, 1, 0));
                 config.layers[1] = Layer.CreateRoundedRect(new Color(0.2f, 0.35f, 0.5f, 1f), 4f);
                 config.layers[2] = Layer.CreateBorder(new Color(0.3f, 0.5f, 0.7f, 1f), 1f, 4f);
                 return config;
@@ -163,8 +168,9 @@ namespace VahTyah
 
             private static GUIStyle CreateButtonLabelStyle()
             {
-                GUIStyle labelStyle = new GUIStyle(UnityEditor.EditorStyles.boldLabel);
+                GUIStyle labelStyle = new GUIStyle(); // Create from scratch
                 labelStyle.fontSize = 12;
+                labelStyle.fontStyle = FontStyle.Bold;
                 labelStyle.alignment = TextAnchor.MiddleCenter;
                 labelStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f, 1f);
                 labelStyle.padding = new RectOffset(0, 0, 0, 0);

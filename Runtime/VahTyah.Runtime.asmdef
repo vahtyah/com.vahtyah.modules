@@ -1,13 +1,13 @@
 ﻿{
-  "name": "Inspector.Editor",
+  "name": "VahTyah.Runtime",
   "rootNamespace": "VahTyah",
-  "references": ["Inspector.Runtime", "LayerSystem.Editor", "Utils.Editor"],
-  "includePlatforms": ["Editor"],
+  "references": [],
+  "includePlatforms":  [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
   "precompiledReferences": [],
-  "autoReferenced": true,
+  "autoReferenced":  true,
   "defineConstraints": [],
   "versionDefines": [],
   "noEngineReferences": false
