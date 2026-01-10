@@ -5,12 +5,13 @@ using UnityEngine;
 
 namespace VahTyah
 {
-    [CreateAssetMenu(fileName = "EditorStyles", menuName = "CustomEditor/EditorStyles", order = 1)]
+    // [CreateAssetMenu(fileName = "EditorStyles", menuName = "CustomEditor/EditorStyles", order = 1)]
     public class EditorStyleDatabase : ScriptableObject
     {
-        [SerializeField] private int defaultStyleIndex = 0;
-        [SerializeField] private List<EditorCustomStyle> styles = new List<EditorCustomStyle>();
+        [SerializeField, BoxGroup("Settings")] private int defaultStyleIndex = 0;
+        [SerializeField, BoxGroup("Styles")] private List<EditorCustomStyle> styles = new List<EditorCustomStyle>();
 
+        [Button]
         public void AddDefaultStyle()
         {
             EditorCustomStyle defaultStyle = new EditorCustomStyle

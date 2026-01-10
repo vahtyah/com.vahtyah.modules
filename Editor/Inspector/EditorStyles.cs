@@ -30,5 +30,11 @@ namespace VahTyah
             EnsureStyleDatabaseExists();
             return Style;
         }
+        
+        public static void SetStyleDatabase(EditorStyleDatabase database)
+        {
+            styleDatabase = database;
+            Style = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
+        }
     }
 }

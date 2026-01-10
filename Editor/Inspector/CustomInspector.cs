@@ -1,4 +1,5 @@
-﻿﻿using System;
+﻿#if VAHTYAH_CUSTOM_INSPECTOR
+     ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +23,7 @@ namespace VahTyah
     public class CustomInspector : Editor
     {
         private List<Type> nestedClassTypes;
-        
+
         private List<PropertyGroup> propertyGroups;
         private List<SerializedProperty> ungroupedProperties;
         private SerializedProperty scriptProperty;
@@ -41,7 +42,7 @@ namespace VahTyah
             CollectProperties();
             CollectButtonMethods();
             EditorStyles.EnsureStyleDatabaseExists();
-            
+
             buttonDrawer = new ButtonDrawer();
         }
 
@@ -160,7 +161,7 @@ namespace VahTyah
                 var attribute = buttonTuple.Item2;
 
                 buttonDrawer.DrawButton(method, attribute, targets);
-                
+
                 if (i < buttonMethods.Count - 1)
                 {
                     buttonDrawer.DrawSpacing();
@@ -203,3 +204,4 @@ namespace VahTyah
         #endregion
     }
 }
+#endif
