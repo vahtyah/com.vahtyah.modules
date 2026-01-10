@@ -138,15 +138,7 @@ namespace VahTyah
                     ButtonAttribute buttonAttr = method.GetCustomAttribute<ButtonAttribute>();
                     if (buttonAttr != null)
                     {
-                        // Validate that the method has no parameters
-                        if (method.GetParameters().Length == 0)
-                        {
-                            buttonMethods.Add((method, buttonAttr));
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Method '{method.Name}' has ButtonAttribute but requires parameters. Only parameterless methods are supported.");
-                        }
+                        buttonMethods.Add((method, buttonAttr));
                     }
                 }
             }

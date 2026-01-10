@@ -116,6 +116,7 @@ namespace VahTyah
             public float buttonHeight;
             public float buttonSpacing;
             public Padding buttonPadding;
+            public LayerConfiguration backgroundConfig;
             public LayerConfiguration normalConfig;
             public LayerConfiguration hoverConfig;
             public LayerConfiguration activeConfig;
@@ -128,12 +129,21 @@ namespace VahTyah
                     buttonHeight = 30f,
                     buttonSpacing = 5f,
                     buttonPadding = new Padding(12f, 8f, 12f, 8f),
+                    backgroundConfig = CreateBackgroundStyle(),
                     normalConfig = CreateButtonNormalStyle(),
                     hoverConfig = CreateButtonHoverStyle(),
                     activeConfig = CreateButtonActiveStyle(),
                     labelStyle = CreateButtonLabelStyle()
                 };
                 return styles;
+            }
+
+            private static LayerConfiguration CreateBackgroundStyle()
+            {
+                LayerConfiguration config = new LayerConfiguration(2);
+                config.layers[0] = Layer.CreateRoundedRect(new Color(0.22f, 0.22f, 0.22f, 1f), 4f);
+                config.layers[1] = Layer.CreateBorder(new Color(0.4f, 0.4f, 0.4f, 1f), 1f, 4f);
+                return config;
             }
 
             private static LayerConfiguration CreateButtonNormalStyle()
