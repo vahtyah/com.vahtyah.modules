@@ -108,10 +108,12 @@ namespace VahTyah
 
             serializedObject.Update();
 
-            foreach (var property in ungroupedProperties)
-            {
-                EditorGUILayout.PropertyField(property, true);
-            }
+          if(ungroupedProperties != null && ungroupedProperties.Count > 0){
+                 foreach (var property in ungroupedProperties)
+                 {
+                     EditorGUILayout.PropertyField(property, true);
+                 }
+          }
 
             foreach (var group in propertyGroups)
             {
