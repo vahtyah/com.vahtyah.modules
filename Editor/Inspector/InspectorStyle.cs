@@ -3,38 +3,38 @@ using UnityEditor;
 namespace VahTyah
 {
     [InitializeOnLoad]
-    public static class EditorStyles
+    public static class InspectorStyle
     {
         private static EditorStyleDatabase styleDatabase;
-        private static EditorCustomStyle Style;
+        private static InspectorStyleData styleData;
 
-        static EditorStyles()
+        static InspectorStyle()
         {
             EnsureStyleDatabaseExists();
         }
 
         public static void EnsureStyleDatabaseExists()
         {
-            if(Style != null) return;
+            if(styleData != null) return;
             
             if (styleDatabase == null)
             {
                 styleDatabase = EditorUtils.GetAsset<EditorStyleDatabase>();
             }
             
-            Style = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
+            styleData = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
         }
 
-        public static EditorCustomStyle GetStyle()
+        public static InspectorStyleData GetStyle()
         {
             EnsureStyleDatabaseExists();
-            return Style;
+            return styleData;
         }
         
         public static void SetStyleDatabase(EditorStyleDatabase database)
         {
             styleDatabase = database;
-            Style = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
+            styleData = styleDatabase?.GetStyle() ?? EditorStyleDatabase.GetDefaultStyle();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace VahTyah
 {
     public class ButtonDrawer
     {
-        private readonly EditorCustomStyle.ButtonStyles buttonStyles = EditorStyles.GetStyle().buttonStyles;
+        private readonly InspectorStyleData.ButtonStyles buttonStyles = InspectorStyle.GetStyle().buttonStyles;
         private readonly Dictionary<string, MethodCache> methodCaches = new();
         private readonly Dictionary<Type, object> defaultValueCache = new();
         private readonly Dictionary<string, ReorderableList> reorderableLists = new();

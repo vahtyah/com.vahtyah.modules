@@ -9,20 +9,20 @@ namespace VahTyah
     public class EditorStyleDatabase : ScriptableObject
     {
         [SerializeField, BoxGroup("Settings")] private int defaultStyleIndex = 0;
-        [SerializeField, BoxGroup("Styles")] private List<EditorCustomStyle> styles = new List<EditorCustomStyle>();
+        [SerializeField, BoxGroup("Styles")] private List<InspectorStyleData> styles = new List<InspectorStyleData>();
 
         [Button]
         public void AddDefaultStyle()
         {
-            EditorCustomStyle defaultStyle = new EditorCustomStyle
+            InspectorStyleData defaultStyleData = new InspectorStyleData
             {
-                groupStyles = EditorCustomStyle.GroupStyles.CreateDefaultStyles(),
-                buttonStyles = EditorCustomStyle.ButtonStyles.CreateDefaultStyles()
+                groupStyles = InspectorStyleData.GroupStyles.CreateDefaultStyles(),
+                buttonStyles = InspectorStyleData.ButtonStyles.CreateDefaultStyles()
             };
-            styles.Add(defaultStyle);
+            styles.Add(defaultStyleData);
         }
 
-        public EditorCustomStyle GetStyle()
+        public InspectorStyleData GetStyle()
         {
             if (styles.Count == 0)
             {
@@ -37,19 +37,19 @@ namespace VahTyah
             return styles[defaultStyleIndex];
         }
 
-        public static EditorCustomStyle GetDefaultStyle()
+        public static InspectorStyleData GetDefaultStyle()
         {
-            EditorCustomStyle defaultStyle = new EditorCustomStyle
+            InspectorStyleData defaultStyleData = new InspectorStyleData
             {
-                groupStyles = EditorCustomStyle.GroupStyles.CreateDefaultStyles(),
-                buttonStyles = EditorCustomStyle.ButtonStyles.CreateDefaultStyles()
+                groupStyles = InspectorStyleData.GroupStyles.CreateDefaultStyles(),
+                buttonStyles = InspectorStyleData.ButtonStyles.CreateDefaultStyles()
             };
-            return defaultStyle;
+            return defaultStyleData;
         }
     }
 
     [Serializable]
-    public class EditorCustomStyle
+    public class InspectorStyleData
     {
         public GroupStyles groupStyles;
         public ButtonStyles buttonStyles;

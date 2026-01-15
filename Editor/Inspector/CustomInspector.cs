@@ -41,7 +41,7 @@ namespace VahTyah
 
             CollectProperties();
             CollectButtonMethods();
-            EditorStyles.EnsureStyleDatabaseExists();
+            InspectorStyle.EnsureStyleDatabaseExists();
 
             buttonDrawer = new ButtonDrawer();
         }

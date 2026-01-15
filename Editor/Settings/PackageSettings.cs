@@ -11,8 +11,9 @@ namespace VahTyah
         public const string DEFINE_SYMBOL = "VAHTYAH_CUSTOM_INSPECTOR";
         private const string EDITOR_STYLE_PATH = "Assets/Editor/EditorStyle";
         private const string ASSET_NAME = "EditorStyleDatabase.asset";
+        private const string LEVEL_EDITOR_STYLE_ASSET_NAME = "LevelEditorStyleDatabase.asset";
 
-        [MenuItem("Tools/VahTyah/Custom Editor Style", false, 1)]
+        [MenuItem("Tools/VahTyah/Styles/Inspector Style", false, 1)]
         public static void CreateEditorStyleDatabase()
         {
             if (!Directory.Exists(EDITOR_STYLE_PATH))
@@ -33,7 +34,33 @@ namespace VahTyah
             string assetPath = Path.Combine(EDITOR_STYLE_PATH, ASSET_NAME);
             var database =  EditorUtils.CreateAsset<EditorStyleDatabase>(assetPath, true);
             database.AddDefaultStyle();
-            EditorStyles.SetStyleDatabase(database);
+            InspectorStyle.SetStyleDatabase(database);
+
+            Selection.activeObject = database;
+            EditorGUIUtility.PingObject(database);
+        }
+        
+        [MenuItem("Tools/VahTyah/Styles/Level Editor Style", false, 1)]
+        public static void CreateLevelEditorStyle()
+        {
+            if (!Directory.Exists(EDITOR_STYLE_PATH))
+            {
+                Directory.CreateDirectory(EDITOR_STYLE_PATH);
+                AssetDatabase.Refresh();
+            }
+
+            var existingAsset = EditorUtils.GetAsset<ListStylesDatabase>();
+
+            if (existingAsset != null)
+            {
+                Selection.activeObject = existingAsset;
+                EditorGUIUtility.PingObject(existingAsset);
+                return;
+            }
+
+            string assetPath = Path.Combine(EDITOR_STYLE_PATH, LEVEL_EDITOR_STYLE_ASSET_NAME);
+            var database =  EditorUtils.CreateAsset<ListStylesDatabase>(assetPath, true);
+            database.AddDefaultStyle();
 
             Selection.activeObject = database;
             EditorGUIUtility.PingObject(database);

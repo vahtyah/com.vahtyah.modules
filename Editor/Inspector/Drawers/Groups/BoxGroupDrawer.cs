@@ -6,7 +6,7 @@ namespace VahTyah
 {
     public class BoxGroupDrawer : IGroupDrawer
     {
-        private EditorCustomStyle.GroupStyles groupStyles = EditorStyles.GetStyle().groupStyles;
+        private InspectorStyleData.GroupStyles groupStyles = InspectorStyle.GetStyle().groupStyles;
 
         public void Draw(PropertyGroup propertyGroup)
         {
