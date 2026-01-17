@@ -621,7 +621,7 @@ namespace VahTyah
 
         public void OpenLastActiveLevel()
         {
-            if (!IsLastLevelOpened && (levelsSerializedProperty.arraySize > 0) && PlayerPrefs.HasKey(PREFS_LEVEL))
+            if (!IsLastLevelOpened && (levelsSerializedProperty.arraySize > 0) && PlayerPrefs.HasKey(PREFS_LEVEL) && !Application.isPlaying)
             {
                 CustomList.SelectedIndex = Mathf.Clamp(PlayerPrefs.GetInt(PREFS_LEVEL, 0), 0,
                     levelsSerializedProperty.arraySize - 1);
