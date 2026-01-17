@@ -53,6 +53,10 @@ public abstract class LevelEditorBase : EditorWindow
         _resizableSidebar = new ResizableSeparator("editor_sidebar_width", 240);
     }
 
+    protected virtual void OnDisable()
+    {
+    }
+
     protected abstract LevelsHandlerBase GetLevelHandler { get; }
 
     protected virtual void OnGUI()
