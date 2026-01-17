@@ -38,6 +38,7 @@ namespace VahTyah
         public int CurrentSize => currentSize;
         public int CurrentWidth => currentSize;
         public int CurrentHeight => currentSize;
+        public float TotalSize => currentSize + (direction == ResizeDirection.Horizontal ? separatorRect.width : separatorRect.height);
 
         public void DrawResizeSeparator()
         {

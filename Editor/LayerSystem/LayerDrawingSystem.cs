@@ -43,7 +43,7 @@ namespace VahTyah
                     DrawRoundedRect(tempRect, layer);
                     break;
 
-                case LayerType.Gradient:
+                case LayerType.Gradient or LayerType.RoundedGradient:
                     DrawGradient(tempRect, layer);
                     break;
             }
@@ -93,8 +93,26 @@ namespace VahTyah
 
         private static void DrawGradient(Rect rect, Layer layer)
         {
-            Texture2D gradientTexture = CreateGradientTexture(layer.color, layer.gradientEndColor, layer.gradientDirection);
-            GUI.DrawTexture(rect, gradientTexture, ScaleMode.StretchToFill);
+            Texture2D gradientTexture =
+                CreateGradientTexture(layer.color, layer.gradientEndColor, layer.gradientDirection);
+            if (layer.borderRadius != Vector4.zero)
+            {
+                GUI.DrawTexture(
+                    rect,
+                    gradientTexture,
+                    ScaleMode.StretchToFill,
+                    true,
+                    0,
+                    Color.white,
+                    Vector4.one * 100,
+                    layer.borderRadius
+                );
+            }
+            else
+            {
+                GUI.DrawTexture(rect, gradientTexture, ScaleMode.StretchToFill);
+            }
+
             Object.DestroyImmediate(gradientTexture);
         }
 
@@ -131,4 +149,3 @@ namespace VahTyah
         }
     }
 }
-

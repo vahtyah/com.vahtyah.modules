@@ -56,13 +56,15 @@ namespace VahTyah
         private Rect paginationLabelRect;
 
         // Layer Configurations
-        private LayerConfiguration globalBackgroundConfig;
-        private LayerConfiguration headerBackgroundConfig;
-        private LayerConfiguration listBackgroundConfig;
-        private LayerConfiguration paginationBackgroundConfig;
-        private LayerConfiguration footerBackgroundConfig;
-        private LayerConfiguration selectedElementConfig;
-        private LayerConfiguration unselectedElementConfig;
+        // private LayerConfiguration globalBackgroundConfig;
+        // private LayerConfiguration headerBackgroundConfig;
+        // private LayerConfiguration listBackgroundConfig;
+        // private LayerConfiguration paginationBackgroundConfig;
+        // private LayerConfiguration selectedElementConfig;
+        // private LayerConfiguration unselectedElementConfig;
+        private LevelEditorStyleData currentCustomStyle;
+        private LevelEditorStyleData.CustomListStyle customListStyle;
+        private LevelEditorStyleData.GlobalBackground globalBackgroundStyle;
 
         // State
         private int selectedIndex = -1;
@@ -71,7 +73,6 @@ namespace VahTyah
         private int prevIndent;
         private Rect calculatedGlobalRect;
         private EditorWindow parentWindow;
-        private CustomListStyle currentCustomStyle;
 
         // Drag & Drop
         private bool dragging = false;
@@ -206,7 +207,7 @@ namespace VahTyah
             set => parentWindow = value;
         }
 
-        public CustomListStyle CurrentCustomStyle
+        public LevelEditorStyleData CurrentCustomStyle
         {
             get => currentCustomStyle;
         }
@@ -291,133 +292,44 @@ namespace VahTyah
 
         public void LoadCustomStyle(int index = 0)
         {
-            ListStylesDatabase listStylesDatabase = EditorUtils.GetAsset<ListStylesDatabase>();
+            LevelEditorStylesDatabase levelEditorStylesDatabase = EditorUtils.GetAsset<LevelEditorStylesDatabase>();
 
-            if (listStylesDatabase == null)
+            if (levelEditorStylesDatabase == null)
             {
-                currentCustomStyle = new CustomListStyle();
-                currentCustomStyle.SetDefaultStyleValues();
+                currentCustomStyle = LevelEditorStylesDatabase.GetDefaultStyle();
             }
-            else currentCustomStyle = listStylesDatabase.GetStyle(index);
+            else currentCustomStyle = levelEditorStylesDatabase.GetStyle();
 
             if (currentCustomStyle == null)
             {
-                Debug.LogWarning("Cannot load null custom style");
+                customListStyle = LevelEditorStyleData.CustomListStyle.CreateDefaultStyles();
+                globalBackgroundStyle = LevelEditorStyleData.GlobalBackground.CreateDefaultStyles();
                 return;
             }
+            
+            customListStyle = currentCustomStyle.customListStyle;
+            globalBackgroundStyle = currentCustomStyle.globalBackground;
 
-            enableHeader = currentCustomStyle.enableHeader;
-            enableSearch = currentCustomStyle.enableSearch;
-            enableFooterAddButton = currentCustomStyle.enableFooterAddButton;
-            enableFooterRemoveButton = currentCustomStyle.enableFooterRemoveButton;
-            enableElementRemoveButton = currentCustomStyle.enableElementRemoveButton;
-            ignoreDragEvents = currentCustomStyle.ignoreDragEvents;
+            var listStyle = currentCustomStyle.customListStyle;
+            enableHeader = listStyle.enableHeader;
+            enableSearch = listStyle.enableSearch;
+            enableFooterAddButton = listStyle.enableFooterAddButton;
+            enableFooterRemoveButton = listStyle.enableFooterRemoveButton;
+            enableElementRemoveButton = listStyle.enableElementRemoveButton;
+            ignoreDragEvents = listStyle.ignoreDragEvents;
 
-            minHeight = currentCustomStyle.minHeight;
-            minWidth = currentCustomStyle.minWidth;
-            stretchHeight = currentCustomStyle.stretchHeight;
-            stretchWidth = currentCustomStyle.stretchWidth;
+            minHeight = listStyle.minHeight;
+            minWidth = listStyle.minWidth;
+            stretchHeight = listStyle.stretchHeight;
+            stretchWidth = listStyle.stretchWidth;
 
-            collapsedElementHeight = currentCustomStyle.element.collapsedElementHeight;
+            collapsedElementHeight = listStyle.element.collapsedElementHeight;
 
-            emptyListMessage = currentCustomStyle.emptyListMessage;
-            noResultsMessage = currentCustomStyle.noResultsMessage;
+            emptyListMessage = listStyle.emptyListMessage;
+            noResultsMessage = listStyle.noResultsMessage;
 
-            InitializeLayerConfigurations();
             RequestRepaint();
         }
-
-        private void InitializeLayerConfigurations()
-        {
-            if (currentCustomStyle == null)
-            {
-                InitializeDefaultLayerConfigurations();
-                return;
-            }
-
-            var style = currentCustomStyle;
-
-            globalBackgroundConfig = style.globalBackground.backgroundConfig;
-            headerBackgroundConfig = style.header.backgroundConfig;
-            listBackgroundConfig = style.list.backgroundConfig;
-            paginationBackgroundConfig = style.pagination.backgroundConfig;
-            footerBackgroundConfig = style.footerButtons.backgroundConfig;
-            selectedElementConfig = style.element.selectedBackgroundConfig;
-            unselectedElementConfig = style.element.unselectedBackgroundConfig;
-        }
-
-
-        private void InitializeDefaultLayerConfigurations()
-        {
-            // Global Background
-            globalBackgroundConfig = new LayerConfiguration(2);
-
-            // Layer 1: Background
-            globalBackgroundConfig.layers[0] = new Layer();
-            globalBackgroundConfig.layers[0].type = LayerType.RoundedRect;
-            globalBackgroundConfig.layers[0].color = new Color(0.302f, 0.302f, 0.302f, 1f);
-            globalBackgroundConfig.layers[0].borderWidth = Vector4.one * 100;
-            globalBackgroundConfig.layers[0].borderRadius = Vector4.one * 4f;
-            globalBackgroundConfig.layers[0].padding = new Padding(0, 0, 1, 21);
-
-            // Layer 2: Border outline
-            globalBackgroundConfig.layers[1] = new Layer();
-            globalBackgroundConfig.layers[1].type = LayerType.Border;
-            globalBackgroundConfig.layers[1].color = new Color(0.141f, 0.141f, 0.141f, 1f);
-            globalBackgroundConfig.layers[1].borderWidth = Vector4.one * 1f;
-            globalBackgroundConfig.layers[1].borderRadius = Vector4.one * 4f;
-            globalBackgroundConfig.layers[1].padding = new Padding(0, 0, 0, 20);
-
-            // Header Background
-            headerBackgroundConfig = new LayerConfiguration(1);
-            headerBackgroundConfig.layers[0] = new Layer();
-            headerBackgroundConfig.layers[0].type = LayerType.Border;
-            headerBackgroundConfig.layers[0].color = new Color(0.22f, 0.22f, 0.22f, 1f);
-            headerBackgroundConfig.layers[0].borderWidth = new Vector4(0, 0, 0, 1);
-            headerBackgroundConfig.layers[0].borderRadius = Vector4.zero;
-            headerBackgroundConfig.layers[0].padding = new Padding();
-
-            // List Background
-            listBackgroundConfig = new LayerConfiguration(0);
-
-            // Pagination Background
-            paginationBackgroundConfig = new LayerConfiguration(1);
-            paginationBackgroundConfig.layers[0] = new Layer();
-            paginationBackgroundConfig.layers[0].type = LayerType.Border;
-            paginationBackgroundConfig.layers[0].color = new Color(0.22f, 0.22f, 0.22f, 1f);
-            paginationBackgroundConfig.layers[0].borderWidth = new Vector4(0, 1, 0, 0);
-            paginationBackgroundConfig.layers[0].borderRadius = Vector4.zero;
-            paginationBackgroundConfig.layers[0].padding = new Padding();
-
-            // Footer Background
-            footerBackgroundConfig = new LayerConfiguration(2);
-
-            // Layer 1: Background fill
-            footerBackgroundConfig.layers[0] = new Layer();
-            footerBackgroundConfig.layers[0].type = LayerType.RoundedRect;
-            footerBackgroundConfig.layers[0].color = new Color(0.302f, 0.302f, 0.302f, 1f);
-            footerBackgroundConfig.layers[0].borderWidth = Vector4.one * 100;
-            footerBackgroundConfig.layers[0].borderRadius = new Vector4(0, 0, 4, 4);
-            footerBackgroundConfig.layers[0].padding = new Padding(0, 0, 0, 0);
-
-            // Layer 2: Border
-            footerBackgroundConfig.layers[1] = new Layer();
-            footerBackgroundConfig.layers[1].type = LayerType.Border;
-            footerBackgroundConfig.layers[1].color = new Color(0.141f, 0.141f, 0.141f, 1f);
-            footerBackgroundConfig.layers[1].borderWidth = new Vector4(1, 0, 1, 1);
-            footerBackgroundConfig.layers[1].borderRadius = new Vector4(0, 0, 4, 4);
-            footerBackgroundConfig.layers[1].padding = new Padding(0, 0, 0, 0);
-
-            // Selected Element Background
-            selectedElementConfig = new LayerConfiguration(1);
-            selectedElementConfig.layers[0] = Layer.CreateSolidColor(
-                new Color(0.172549f, 0.3647059f, 0.5294118f, 1f)
-            );
-
-            // Unselected Element Background (transparent)
-            unselectedElementConfig = new LayerConfiguration(0);
-        }
-
         private void ExecuteOnce()
         {
             if (executedOnce) return;
@@ -532,7 +444,7 @@ namespace VahTyah
             DoCalculations();
 
             // Draw global background
-            LayerDrawingSystem.DrawLayers(globalRect, globalBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(globalRect, globalBackgroundStyle.backgroundConfig);
 
             if (enableHeader)
             {
@@ -703,12 +615,16 @@ namespace VahTyah
             }
 
             // Footer
+            float borderWidth = globalBackgroundStyle.backgroundConfig.GetLayerByType(LayerType.Border)?.borderWidth.w ?? 0;
+            
             footerButtonsRect.Set(
                 globalRect.x,
-                globalRect.yMax - FOOTER_HEIGHT,
+                globalRect.yMax - FOOTER_HEIGHT + borderWidth - 1,
                 globalRect.width,
                 FOOTER_HEIGHT
             );
+
+            globalRect.yMax -= FOOTER_HEIGHT - borderWidth;
             listRect.yMax -= FOOTER_HEIGHT;
 
             // Pagination
@@ -830,14 +746,14 @@ namespace VahTyah
 
         private void DrawHeader()
         {
-            LayerDrawingSystem.DrawLayers(headerRect, headerBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(headerRect, customListStyle.header.backgroundConfig);
 
             GUIStyle headerStyle = new GUIStyle(GUI.skin.label);
             headerStyle.alignment = TextAnchor.MiddleLeft;
 
-            if (currentCustomStyle != null && currentCustomStyle.header != null)
+            if (currentCustomStyle != null && currentCustomStyle.customListStyle.header != null)
             {
-                headerStyle.normal.textColor = currentCustomStyle.header.textColor;
+                headerStyle.normal.textColor = currentCustomStyle.customListStyle.header.textColor;
             }
 
             EditorGUI.LabelField(headerContentRect, GetHeaderLabel(), headerStyle);
@@ -845,9 +761,9 @@ namespace VahTyah
             GUIStyle sizeStyle = new GUIStyle(GUI.skin.label);
             sizeStyle.alignment = TextAnchor.MiddleRight;
 
-            if (currentCustomStyle != null && currentCustomStyle.header != null)
+            if (currentCustomStyle != null && currentCustomStyle.customListStyle.header != null)
             {
-                sizeStyle.normal.textColor = currentCustomStyle.header.textColor;
+                sizeStyle.normal.textColor = currentCustomStyle.customListStyle.header.textColor;
             }
 
             EditorGUI.LabelField(headerContentRect, $"Size:  {ArraySize()}", sizeStyle);
@@ -855,7 +771,7 @@ namespace VahTyah
 
         private void DrawList()
         {
-            LayerDrawingSystem.DrawLayers(listRect, listBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(listRect, customListStyle.list.backgroundConfig);
 
             if (isSearchActive && filteredIndices.Count == 0)
             {
@@ -953,7 +869,7 @@ namespace VahTyah
 
         private void DrawPagination()
         {
-            LayerDrawingSystem.DrawLayers(footerPaginationRect, paginationBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(footerPaginationRect, customListStyle.pagination.backgroundConfig);
 
             GUIStyle buttonStyle = new GUIStyle("RL FooterButton");
             buttonStyle.contentOffset = new Vector2(0, -1);
@@ -1021,9 +937,9 @@ namespace VahTyah
             Rect elementBgRect = new Rect(rect.x, rect.y, rect.width, collapsedElementHeight);
 
             if (isSelected)
-                LayerDrawingSystem.DrawLayers(elementBgRect, selectedElementConfig);
+                LayerDrawingSystem.DrawLayers(elementBgRect, customListStyle.element.selectedBackgroundConfig);
             else
-                LayerDrawingSystem.DrawLayers(elementBgRect, unselectedElementConfig);
+                LayerDrawingSystem.DrawLayers(elementBgRect, customListStyle.element.unselectedBackgroundConfig);
 
             if (currentEvent.type == EventType.Repaint)
             {
@@ -1046,39 +962,39 @@ namespace VahTyah
 
             string label = GetElementLabel(currentElementProperty, index);
             GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
-            if (currentCustomStyle != null && currentCustomStyle.element != null)
+            if (currentCustomStyle != null && currentCustomStyle.customListStyle.element != null)
             {
-                labelStyle.normal.textColor = currentCustomStyle.element.textColor;
+                labelStyle.normal.textColor = currentCustomStyle.customListStyle.element.textColor;
             }
 
             GUI.Label(currentLabelRect, label);
 
-            if (! dragging && currentEvent.type == EventType.MouseDown &&
+            if (!dragging && currentEvent.type == EventType.MouseDown &&
                 rect.Contains(currentEvent.mousePosition) &&
-                currentEvent. button == 1)
+                currentEvent.button == 1)
             {
                 if (selectedIndex != index)
                 {
                     OnSelectionChanged(index);
                 }
-        
+
                 currentEvent.Use();
                 RequestRepaint();
                 return;
             }
-            
+
             if (!dragging && currentEvent.type == EventType.ContextClick &&
-                rect.Contains(currentEvent. mousePosition))
+                rect.Contains(currentEvent.mousePosition))
             {
                 if (displayContextMenuCallback != null)
                 {
-                    displayContextMenuCallback. Invoke(index);
+                    displayContextMenuCallback.Invoke(index);
                 }
                 else
                 {
                     ShowDefaultContextMenu(index);
                 }
-        
+
                 currentEvent.Use();
                 return;
             }
@@ -1089,14 +1005,6 @@ namespace VahTyah
                 currentLabelRect.width,
                 currentLabelRect.height
             );
-
-            // if (!dragging && currentEvent.type == EventType.MouseUp &&
-            //     headerButtonRect.Contains(currentEvent.mousePosition))
-            // {
-            //     OnSelectionChanged(index);
-            //     currentEvent.Use();
-            // }
-
 
             if (!dragging && currentEvent.type == EventType.MouseUp &&
                 headerButtonRect.Contains(currentEvent.mousePosition) &&
@@ -1160,7 +1068,7 @@ namespace VahTyah
             if (enableFooterAddButton && enableFooterRemoveButton)
                 leftEdge -= 25;
 
-            float borderBackground = globalBackgroundConfig.GetLayerByType(LayerType.Border)?.borderWidth.z ?? 0;
+            float borderBackground = globalBackgroundStyle.backgroundConfig.GetLayerByType(LayerType.Border)?.borderWidth.z ?? 0;
 
             buttonsRect.Set(
                 leftEdge,
@@ -1169,7 +1077,7 @@ namespace VahTyah
                 FOOTER_HEIGHT
             );
 
-            LayerDrawingSystem.DrawLayers(buttonsRect, footerBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(buttonsRect, customListStyle.footerButtons.backgroundConfig);
 
             float footerButtonHeight = 16f;
             float footerButtonY = buttonsRect.y + (buttonsRect.height - footerButtonHeight) / 2;
@@ -1222,7 +1130,7 @@ namespace VahTyah
 
         private void DrawSearch()
         {
-            LayerDrawingSystem.DrawLayers(searchRect, headerBackgroundConfig);
+            LayerDrawingSystem.DrawLayers(searchRect, customListStyle.header.backgroundConfig);
 
             Rect adjustedSearchFieldRect = searchFieldRect;
             if (!string.IsNullOrEmpty(searchQuery))
