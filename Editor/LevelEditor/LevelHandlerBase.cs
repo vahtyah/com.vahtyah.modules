@@ -1,4 +1,4 @@
-﻿#pragma warning disable 649
+#pragma warning disable 649
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -37,7 +37,9 @@ namespace VahTyah
         private const string DUPLICATE_LEVEL_LABEL = "Duplicate Level";
         private const string INDEX_CHANGE_WINDOW = "Change Level Position";
         private readonly Vector2 INDEX_CHANGE_WINDOW_SIZE = new Vector2(320, 80);
-
+        
+        public static bool IsLastLevelOpened { get; set; } = false;
+        
         //PlayerPrefs
         private const string PREFS_LEVEL = "editor_level_index";
 
@@ -78,7 +80,7 @@ namespace VahTyah
         private Object levelsDatabase;
         private SerializedObject levelsDatabaseSerializedObject;
         private SerializedProperty levelsSerializedProperty;
-        private CustomList customList;
+        private SimpleCustomList customList;
 
         #endregion
 
@@ -117,7 +119,7 @@ namespace VahTyah
             set => customList.IgnoreDragEvents = value;
         }
 
-        public CustomList CustomList => customList;
+        public SimpleCustomList CustomList => customList;
 
         public int LevelsCount => levelsSerializedProperty.arraySize;
 
@@ -162,7 +164,7 @@ namespace VahTyah
         private void SetupCustomList()
         {
             // Create list with custom label callback
-            customList = new CustomList(
+            customList = new SimpleCustomList(
                 levelsDatabaseSerializedObject,
                 levelsSerializedProperty,
                 GetLevelLabel
@@ -325,7 +327,6 @@ namespace VahTyah
             {
                 PlayerPrefs.SetInt(PREFS_LEVEL, index);
                 PlayerPrefs.Save();
-                var levelObject = levelsSerializedProperty.GetArrayElementAtIndex(index).objectReferenceValue;
                 // LevelEditorBase.Instance.OpenLevel(levelObject, index);
                 onLevelOpenedCallback?.Invoke(index);
             }
@@ -575,6 +576,7 @@ namespace VahTyah
 
         public void DisplayReordableList()
         {
+            OpenLastActiveLevel();
             customList.Display();
         }
 
@@ -619,10 +621,12 @@ namespace VahTyah
 
         public void OpenLastActiveLevel()
         {
-            if ((levelsSerializedProperty.arraySize > 0) && PlayerPrefs.HasKey(PREFS_LEVEL))
+            if (!IsLastLevelOpened && (levelsSerializedProperty.arraySize > 0) && PlayerPrefs.HasKey(PREFS_LEVEL))
             {
                 CustomList.SelectedIndex = Mathf.Clamp(PlayerPrefs.GetInt(PREFS_LEVEL, 0), 0,
                     levelsSerializedProperty.arraySize - 1);
+                IsLastLevelOpened = true;
+                ReopenLevel();
             }
         }
 
