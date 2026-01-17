@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 using VahTyah;
+using Object = UnityEngine.Object;
 
 public abstract class LevelEditorBase : EditorWindow
 {
@@ -9,6 +10,9 @@ public abstract class LevelEditorBase : EditorWindow
 
     private ResizableSeparator _resizableSidebar;
     private LevelsHandlerBase _levelHandler;
+    
+    private const string LEVEL_EDITOR_SCENE_PATH = "Assets/_Game/LevelEditor/Editor/Scene/LevelEditor.unity";
+    private const string LEVEL_EDITOR_SCENE_NAME = "LevelEditor";
 
     [MenuItem("Tools/Level Editor")]
     static void ShowWindow()
@@ -53,6 +57,12 @@ public abstract class LevelEditorBase : EditorWindow
 
     protected virtual void OnGUI()
     {
+        if (!LevelEditorUtils.IsInScene(LEVEL_EDITOR_SCENE_NAME))
+        {
+            DrawSceneRequiredMessage();
+            return;
+        }
+        
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.BeginVertical(GUI.skin.box, GUILayout.MaxWidth(_resizableSidebar.CurrentWidth));
         _levelHandler.DisplayReordableList();
@@ -70,5 +80,24 @@ public abstract class LevelEditorBase : EditorWindow
 
     protected virtual void DrawContent()
     {
+    }
+    
+
+    private void DrawSceneRequiredMessage()
+    {
+        EditorGUILayout.Space(20);
+        
+        EditorGUILayout.HelpBox(
+            "Level Editor requires the LevelEditor scene to be open.\n\n" +
+            "Please open the LevelEditor scene to use this tool.",
+            MessageType.Warning
+        );
+        
+        EditorGUILayout.Space(10);
+        
+        if (GUILayout.Button("Open LevelEditor Scene", GUILayout.Height(30)))
+        {
+            LevelEditorUtils.OpenScene(LEVEL_EDITOR_SCENE_PATH);
+        }
     }
 }
