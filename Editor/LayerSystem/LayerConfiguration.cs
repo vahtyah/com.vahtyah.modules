@@ -46,6 +46,16 @@ namespace VahTyah
 
             return null;
         }
+        
+        public LayerConfiguration Clone()
+        {
+            LayerConfiguration clone = new LayerConfiguration(layers.Length);
+            for (int i = 0; i < layers.Length; i++)
+            {
+                clone.layers[i] = layers[i].Clone();
+            }
+            return clone;
+        }
 
         public static LayerConfiguration CreateSimpleBackground(Color color)
         {
@@ -140,6 +150,36 @@ namespace VahTyah
             layer.padding = padding ?? new Padding();
             return layer;
         }
+        
+        public static Layer CreateRoundedGradient(Color startColor, Color endColor, 
+            float borderRadius = 4f, GradientDirection direction = GradientDirection.Vertical, 
+            Padding padding = null)
+        {
+            Layer layer = new Layer();
+            layer.type = LayerType.RoundedGradient;
+            layer.color = startColor;
+            layer.gradientEndColor = endColor;
+            layer.gradientDirection = direction;
+            layer.borderWidth = Vector4.one * 100;
+            layer.borderRadius = Vector4.one * borderRadius;
+            layer.padding = padding ?? new Padding();
+            return layer;
+        }
+
+        public Layer Clone()
+        {
+            return new Layer
+            {
+                enabled = this.enabled,
+                type = this.type,
+                color = this.color,
+                gradientEndColor = this.gradientEndColor,
+                gradientDirection = this.gradientDirection,
+                padding = new Padding(this.padding.left, this.padding.right, this.padding.top, this.padding.bottom),
+                borderWidth = this.borderWidth,
+                borderRadius = this.borderRadius
+            };
+        }
     }
 
     [Serializable]
@@ -179,9 +219,10 @@ namespace VahTyah
     public enum LayerType
     {
         SolidColor,
-        Border,
         RoundedRect,
-        Gradient
+        Border,
+        Gradient,
+        RoundedGradient
     }
 
     [Serializable]

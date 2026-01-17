@@ -49,7 +49,7 @@ namespace VahTyah
                 AssetDatabase.Refresh();
             }
 
-            var existingAsset = EditorUtils.GetAsset<ListStylesDatabase>();
+            var existingAsset = EditorUtils.GetAsset<LevelEditorStylesDatabase>();
 
             if (existingAsset != null)
             {
@@ -59,7 +59,7 @@ namespace VahTyah
             }
 
             string assetPath = Path.Combine(EDITOR_STYLE_PATH, LEVEL_EDITOR_STYLE_ASSET_NAME);
-            var database =  EditorUtils.CreateAsset<ListStylesDatabase>(assetPath, true);
+            var database =  EditorUtils.CreateAsset<LevelEditorStylesDatabase>(assetPath, true);
             database.AddDefaultStyle();
 
             Selection.activeObject = database;

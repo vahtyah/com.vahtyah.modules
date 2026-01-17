@@ -1,9 +1,9 @@
 {
   "name": "com.vahtyah.modules",
   "displayName": "VahTyah",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "unity": "2021.3",
-  "description": "Inspector and Layer system modules",
+  "description": "A collection of useful modules for Unity projects, including UI components, utilities, and more.",
   "author": {
     "name": "Tuan Van",
     "url": "https://github.com/vahtyah"
