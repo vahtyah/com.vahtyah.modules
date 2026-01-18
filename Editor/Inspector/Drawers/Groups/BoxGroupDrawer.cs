@@ -1,4 +1,3 @@
-﻿using VahTyah;
 using UnityEditor;
 using UnityEngine;
 
@@ -6,11 +5,22 @@ namespace VahTyah
 {
     public class BoxGroupDrawer : IGroupDrawer
     {
-        private InspectorStyleData.GroupStyles groupStyles = InspectorStyle.GetStyle().groupStyles;
+        private InspectorStyleData.GroupStyles groupStyles;
+
+        private void EnsureStyles()
+        {
+            if (groupStyles == null)
+            {
+                groupStyles = InspectorStyle.GetStyle()?.groupStyles
+                    ?? InspectorStyleData.GroupStyles.CreateDefaultStyles();
+            }
+        }
 
         public void Draw(PropertyGroup propertyGroup)
         {
             if (propertyGroup.Properties.Count == 0) return;
+
+            EnsureStyles();
 
             var totalHeight = CalculateTotalGroupHeight(propertyGroup);
             Rect groupRect = GUILayoutUtility.GetRect(0, totalHeight, GUILayout.ExpandWidth(true));
@@ -48,7 +58,7 @@ namespace VahTyah
                 float propertyHeight = EditorGUI.GetPropertyHeight(property, true);
                 Rect propertyRect = new Rect(contentX, currentY, contentWidth, propertyHeight);
 
-                EditorGUI.PropertyField(propertyRect, property, true);
+                DrawProperty(propertyGroup, property, propertyRect);
 
                 currentY += propertyHeight + EditorGUIUtility.standardVerticalSpacing;
             }
@@ -57,11 +67,35 @@ namespace VahTyah
 
             GUILayout.Space(groupStyles.groupSpacing);
         }
-        
+
+        private void DrawProperty(PropertyGroup propertyGroup, SerializedProperty property, Rect rect)
+        {
+            // Check AutoRef
+            var autoRefInfo = propertyGroup.GetAutoRefAttribute(property);
+            if (autoRefInfo.HasValue && propertyGroup.AutoRefDrawer != null)
+            {
+                propertyGroup.AutoRefDrawer.DrawProperty(rect, property, autoRefInfo.Value.attr, autoRefInfo.Value.field, propertyGroup.Target);
+                return;
+            }
+
+            // Check AssetRef
+            var assetRefInfo = propertyGroup.GetAssetRefAttribute(property);
+            if (assetRefInfo.HasValue && propertyGroup.AssetRefDrawer != null)
+            {
+                propertyGroup.AssetRefDrawer.DrawProperty(rect, property, assetRefInfo.Value.attr, assetRefInfo.Value.field, propertyGroup.Target);
+                return;
+            }
+
+            // Default
+            EditorGUI.PropertyField(rect, property, true);
+        }
 
         private float CalculateTotalGroupHeight(PropertyGroup propertyGroup)
         {
-            var totalHeight = groupStyles.headerHeight + groupStyles.contentPadding.top + groupStyles.contentPadding.top;
+            EnsureStyles();
+
+            // Fixed: was using contentPadding.top twice instead of top + bottom
+            var totalHeight = groupStyles.headerHeight + groupStyles.contentPadding.top + groupStyles.contentPadding.bottom;
 
             foreach (var property in propertyGroup.Properties)
             {
