@@ -28,12 +28,15 @@ namespace VahTyah
         private List<SerializedProperty> ungroupedProperties;
         private Dictionary<string, (FieldInfo field, AutoRefAttribute attr)> autoRefProperties;
         private Dictionary<string, (FieldInfo field, AssetRefAttribute attr)> assetRefProperties;
+        private Dictionary<string, (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)> onValueChangedProperties;
         private SerializedProperty scriptProperty;
 
         private List<(MethodInfo method, ButtonAttribute attribute)> buttonMethods;
         private ButtonDrawer buttonDrawer;
         private AutoRefDrawer autoRefDrawer;
         private AssetRefDrawer assetRefDrawer;
+        private OnValueChangedHandler onValueChangedHandler;
+        private OnValueChangedDrawer onValueChangedDrawer;
 
         protected virtual void OnEnable()
         {
@@ -43,13 +46,16 @@ namespace VahTyah
 
             nestedClassTypes = GetClassNestedTypes(target.GetType());
 
-            CollectProperties();
-            CollectButtonMethods();
-            InspectorStyle.EnsureStyleDatabaseExists();
-
+            // Initialize handlers before collecting properties
             buttonDrawer = new ButtonDrawer();
             autoRefDrawer = new AutoRefDrawer();
             assetRefDrawer = new AssetRefDrawer();
+            onValueChangedHandler = new OnValueChangedHandler(targets, serializedObject);
+            onValueChangedDrawer = new OnValueChangedDrawer();
+
+            CollectProperties();
+            CollectButtonMethods();
+            InspectorStyle.EnsureStyleDatabaseExists();
 
             // Auto-assign null references on enable
             AutoAssignNullReferences();
@@ -61,6 +67,7 @@ namespace VahTyah
             ungroupedProperties = new List<SerializedProperty>();
             autoRefProperties = new Dictionary<string, (FieldInfo, AutoRefAttribute)>();
             assetRefProperties = new Dictionary<string, (FieldInfo, AssetRefAttribute)>();
+            onValueChangedProperties = new Dictionary<string, (FieldInfo, OnValueChangedAttribute[], MethodInfo[])>();
 
             Dictionary<string, PropertyGroup> groupsDict = new Dictionary<string, PropertyGroup>();
 
@@ -84,6 +91,7 @@ namespace VahTyah
                     GroupAttribute groupAttr = fieldInfo.GetCustomAttribute<GroupAttribute>();
                     AutoRefAttribute autoRefAttr = fieldInfo.GetCustomAttribute<AutoRefAttribute>();
                     AssetRefAttribute assetRefAttr = fieldInfo.GetCustomAttribute<AssetRefAttribute>();
+                    OnValueChangedAttribute[] onValueChangedAttrs = fieldInfo.GetCustomAttributes<OnValueChangedAttribute>().ToArray();
 
                     SerializedProperty targetProperty = serializedObject.FindProperty(iterator.propertyPath);
 
@@ -97,6 +105,13 @@ namespace VahTyah
                     if (assetRefAttr != null)
                     {
                         assetRefProperties[iterator.propertyPath] = (fieldInfo, assetRefAttr);
+                    }
+
+                    // Register OnValueChanged if present
+                    if (onValueChangedAttrs.Length > 0)
+                    {
+                        MethodInfo[] methods = onValueChangedHandler.RegisterField(iterator.propertyPath, fieldInfo, onValueChangedAttrs, target.GetType());
+                        onValueChangedProperties[iterator.propertyPath] = (fieldInfo, onValueChangedAttrs, methods);
                     }
 
                     if (groupAttr != null)
@@ -121,6 +136,12 @@ namespace VahTyah
                         if (assetRefAttr != null)
                         {
                             group.AddAssetRefAttribute(iterator.propertyPath, fieldInfo, assetRefAttr);
+                        }
+
+                        // Also add OnValueChanged to group
+                        if (onValueChangedAttrs.Length > 0 && onValueChangedProperties.TryGetValue(iterator.propertyPath, out var ovcInfo))
+                        {
+                            group.AddOnValueChangedAttribute(iterator.propertyPath, fieldInfo, ovcInfo.attrs, ovcInfo.methods);
                         }
                     }
                     else
@@ -187,6 +208,9 @@ namespace VahTyah
 
             serializedObject.Update();
 
+            // Capture values before drawing (for OnValueChanged)
+            onValueChangedHandler?.CaptureCurrentValues();
+
             if (ungroupedProperties != null && ungroupedProperties.Count > 0)
             {
                 foreach (var property in ungroupedProperties)
@@ -199,36 +223,64 @@ namespace VahTyah
             {
                 group.SetAutoRefDrawer(autoRefDrawer, target);
                 group.SetAssetRefDrawer(assetRefDrawer);
+                group.SetOnValueChangedDrawer(onValueChangedDrawer, targets);
                 group.Draw();
             }
 
             DrawButtons();
 
-            serializedObject.ApplyModifiedProperties();
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                // Values were modified - check for callbacks
+                onValueChangedHandler?.CheckAndInvokeCallbacks();
+            }
         }
 
         private void DrawPropertyWithAutoRef(SerializedProperty property)
         {
-            // Check AutoRef first
-            if (autoRefProperties.TryGetValue(property.propertyPath, out var autoRefInfo))
+            bool hasAutoRef = autoRefProperties.TryGetValue(property.propertyPath, out var autoRefInfo);
+            bool hasAssetRef = assetRefProperties.TryGetValue(property.propertyPath, out var assetRefInfo);
+            bool hasOnValueChanged = onValueChangedProperties.TryGetValue(property.propertyPath, out var onValueChangedInfo);
+
+            int buttonCount = (hasAutoRef ? 1 : 0) + (hasAssetRef ? 1 : 0) + (hasOnValueChanged ? 1 : 0);
+
+            if (buttonCount == 0)
             {
-                float height = EditorGUI.GetPropertyHeight(property, true);
-                Rect rect = GUILayoutUtility.GetRect(0, height, GUILayout.ExpandWidth(true));
-                autoRefDrawer.DrawProperty(rect, property, autoRefInfo.attr, autoRefInfo.field, target);
+                EditorGUILayout.PropertyField(property, true);
                 return;
             }
 
-            // Check AssetRef
-            if (assetRefProperties.TryGetValue(property.propertyPath, out var assetRefInfo))
+            const float BUTTON_WIDTH = 25f;
+            const float BUTTON_SPACING = 2f;
+            float totalButtonWidth = buttonCount * BUTTON_WIDTH + (buttonCount - 1) * BUTTON_SPACING;
+
+            float height = EditorGUI.GetPropertyHeight(property, true);
+            Rect rect = GUILayoutUtility.GetRect(0, height, GUILayout.ExpandWidth(true));
+
+            Rect fieldRect = new Rect(rect.x, rect.y, rect.width - totalButtonWidth - 2, rect.height);
+            EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+
+            float buttonX = rect.xMax - totalButtonWidth;
+
+            if (hasAutoRef)
             {
-                float height = EditorGUI.GetPropertyHeight(property, true);
-                Rect rect = GUILayoutUtility.GetRect(0, height, GUILayout.ExpandWidth(true));
-                assetRefDrawer.DrawProperty(rect, property, assetRefInfo.attr, assetRefInfo.field, target);
-                return;
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                autoRefDrawer.DrawButton(buttonRect, property, autoRefInfo.attr, autoRefInfo.field, target);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
             }
 
-            // Default
-            EditorGUILayout.PropertyField(property, true);
+            if (hasAssetRef)
+            {
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                assetRefDrawer.DrawButton(buttonRect, property, assetRefInfo.attr, assetRefInfo.field, target);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
+            }
+
+            if (hasOnValueChanged)
+            {
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                onValueChangedDrawer.DrawButton(buttonRect, property, onValueChangedInfo.attrs, onValueChangedInfo.methods, targets);
+            }
         }
 
         private void CollectButtonMethods()

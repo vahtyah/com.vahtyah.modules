@@ -16,7 +16,11 @@ namespace VahTyah
             Rect buttonRect = new Rect(rect.xMax - BUTTON_WIDTH, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
 
             EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            DrawButton(buttonRect, property, attribute, fieldInfo, target);
+        }
 
+        public void DrawButton(Rect buttonRect, SerializedProperty property, AssetRefAttribute attribute, FieldInfo fieldInfo, Object target)
+        {
             bool hasValue = property.objectReferenceValue != null;
 
             using (new EditorGUI.DisabledScope(hasValue))

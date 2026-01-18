@@ -70,24 +70,46 @@ namespace VahTyah
 
         private void DrawProperty(PropertyGroup propertyGroup, SerializedProperty property, Rect rect)
         {
-            // Check AutoRef
             var autoRefInfo = propertyGroup.GetAutoRefAttribute(property);
+            var assetRefInfo = propertyGroup.GetAssetRefAttribute(property);
+            var onValueChangedInfo = propertyGroup.GetOnValueChangedAttribute(property);
+
+            int buttonCount = (autoRefInfo.HasValue ? 1 : 0) + (assetRefInfo.HasValue ? 1 : 0) + (onValueChangedInfo.HasValue ? 1 : 0);
+
+            if (buttonCount == 0)
+            {
+                EditorGUI.PropertyField(rect, property, true);
+                return;
+            }
+
+            const float BUTTON_WIDTH = 25f;
+            const float BUTTON_SPACING = 2f;
+            float totalButtonWidth = buttonCount * BUTTON_WIDTH + (buttonCount - 1) * BUTTON_SPACING;
+
+            Rect fieldRect = new Rect(rect.x, rect.y, rect.width - totalButtonWidth - 2, rect.height);
+            EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+
+            float buttonX = rect.xMax - totalButtonWidth;
+
             if (autoRefInfo.HasValue && propertyGroup.AutoRefDrawer != null)
             {
-                propertyGroup.AutoRefDrawer.DrawProperty(rect, property, autoRefInfo.Value.attr, autoRefInfo.Value.field, propertyGroup.Target);
-                return;
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                propertyGroup.AutoRefDrawer.DrawButton(buttonRect, property, autoRefInfo.Value.attr, autoRefInfo.Value.field, propertyGroup.Target);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
             }
 
-            // Check AssetRef
-            var assetRefInfo = propertyGroup.GetAssetRefAttribute(property);
             if (assetRefInfo.HasValue && propertyGroup.AssetRefDrawer != null)
             {
-                propertyGroup.AssetRefDrawer.DrawProperty(rect, property, assetRefInfo.Value.attr, assetRefInfo.Value.field, propertyGroup.Target);
-                return;
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                propertyGroup.AssetRefDrawer.DrawButton(buttonRect, property, assetRefInfo.Value.attr, assetRefInfo.Value.field, propertyGroup.Target);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
             }
 
-            // Default
-            EditorGUI.PropertyField(rect, property, true);
+            if (onValueChangedInfo.HasValue && propertyGroup.OnValueChangedDrawer != null)
+            {
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                propertyGroup.OnValueChangedDrawer.DrawButton(buttonRect, property, onValueChangedInfo.Value.attrs, onValueChangedInfo.Value.methods, propertyGroup.Targets);
+            }
         }
 
         private float CalculateTotalGroupHeight(PropertyGroup propertyGroup)

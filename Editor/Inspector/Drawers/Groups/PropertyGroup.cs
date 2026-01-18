@@ -24,9 +24,12 @@ namespace VahTyah
         public List<SerializedProperty> Properties { get; }
         public Dictionary<string, (FieldInfo field, AutoRefAttribute attr)> AutoRefAttributes { get; }
         public Dictionary<string, (FieldInfo field, AssetRefAttribute attr)> AssetRefAttributes { get; }
+        public Dictionary<string, (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)> OnValueChangedAttributes { get; }
         public AutoRefDrawer AutoRefDrawer { get; private set; }
         public AssetRefDrawer AssetRefDrawer { get; private set; }
+        public OnValueChangedDrawer OnValueChangedDrawer { get; private set; }
         public Object Target { get; private set; }
+        public Object[] Targets { get; private set; }
 
         public PropertyGroup(GroupAttribute attribute, IGroupDrawer drawer)
         {
@@ -35,6 +38,7 @@ namespace VahTyah
             Properties = new List<SerializedProperty>();
             AutoRefAttributes = new Dictionary<string, (FieldInfo, AutoRefAttribute)>();
             AssetRefAttributes = new Dictionary<string, (FieldInfo, AssetRefAttribute)>();
+            OnValueChangedAttributes = new Dictionary<string, (FieldInfo, OnValueChangedAttribute[], MethodInfo[])>();
         }
 
         public void SetAutoRefDrawer(AutoRefDrawer drawer, Object target)
@@ -48,6 +52,12 @@ namespace VahTyah
             AssetRefDrawer = drawer;
         }
 
+        public void SetOnValueChangedDrawer(OnValueChangedDrawer drawer, Object[] targets)
+        {
+            OnValueChangedDrawer = drawer;
+            Targets = targets;
+        }
+
         public void AddAutoRefAttribute(string propertyPath, FieldInfo field, AutoRefAttribute attribute)
         {
             AutoRefAttributes[propertyPath] = (field, attribute);
@@ -56,6 +66,11 @@ namespace VahTyah
         public void AddAssetRefAttribute(string propertyPath, FieldInfo field, AssetRefAttribute attribute)
         {
             AssetRefAttributes[propertyPath] = (field, attribute);
+        }
+
+        public void AddOnValueChangedAttribute(string propertyPath, FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)
+        {
+            OnValueChangedAttributes[propertyPath] = (field, attrs, methods);
         }
 
         public bool HasAutoRef(SerializedProperty property)
@@ -68,6 +83,11 @@ namespace VahTyah
             return AssetRefAttributes.ContainsKey(property.propertyPath);
         }
 
+        public bool HasOnValueChanged(SerializedProperty property)
+        {
+            return OnValueChangedAttributes.ContainsKey(property.propertyPath);
+        }
+
         public (FieldInfo field, AutoRefAttribute attr)? GetAutoRefAttribute(SerializedProperty property)
         {
             if (AutoRefAttributes.TryGetValue(property.propertyPath, out var info))
@@ -78,6 +98,13 @@ namespace VahTyah
         public (FieldInfo field, AssetRefAttribute attr)? GetAssetRefAttribute(SerializedProperty property)
         {
             if (AssetRefAttributes.TryGetValue(property.propertyPath, out var info))
+                return info;
+            return null;
+        }
+
+        public (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)? GetOnValueChangedAttribute(SerializedProperty property)
+        {
+            if (OnValueChangedAttributes.TryGetValue(property.propertyPath, out var info))
                 return info;
             return null;
         }

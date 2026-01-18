@@ -12,22 +12,22 @@ namespace VahTyah
 
         public void DrawProperty(Rect rect, SerializedProperty property, AutoRefAttribute attribute, FieldInfo fieldInfo, Object target)
         {
-            // Field rect (leave space for button)
             Rect fieldRect = new Rect(rect.x, rect.y, rect.width - BUTTON_WIDTH - 2, rect.height);
             Rect buttonRect = new Rect(rect.xMax - BUTTON_WIDTH, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
 
-            // Draw property field
             EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            DrawButton(buttonRect, property, attribute, fieldInfo, target);
+        }
 
-            // Draw auto-find button
+        public void DrawButton(Rect buttonRect, SerializedProperty property, AutoRefAttribute attribute, FieldInfo fieldInfo, Object target)
+        {
             bool hasValue = property.objectReferenceValue != null;
-            
+
             using (new EditorGUI.DisabledScope(hasValue))
             {
-                string tooltip = GetTooltip(attribute);
                 GUIContent buttonContent = EditorGUIUtility.IconContent("Refresh");
-                buttonContent.tooltip = tooltip;
-                
+                buttonContent.tooltip = GetTooltip(attribute);
+
                 if (GUI.Button(buttonRect, buttonContent, EditorStyles.miniButton))
                 {
                     FindAndAssign(property, attribute, fieldInfo, target, silent: false);
