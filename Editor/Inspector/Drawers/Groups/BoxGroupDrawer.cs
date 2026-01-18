@@ -74,9 +74,10 @@ namespace VahTyah
             var assetRefInfo = propertyGroup.GetAssetRefAttribute(property);
             var onValueChangedInfo = propertyGroup.GetOnValueChangedAttribute(property);
             var requiredInfo = propertyGroup.GetRequiredAttribute(property);
+            var readOnlyInfo = propertyGroup.GetReadOnlyAttribute(property);
             bool showRequiredIcon = requiredInfo.HasValue && propertyGroup.RequiredDrawer != null && propertyGroup.RequiredDrawer.ShouldShowIcon(property);
 
-            int buttonCount = (autoRefInfo.HasValue ? 1 : 0) + (assetRefInfo.HasValue ? 1 : 0) + (onValueChangedInfo.HasValue ? 1 : 0) + (showRequiredIcon ? 1 : 0);
+            int buttonCount = (autoRefInfo.HasValue ? 1 : 0) + (assetRefInfo.HasValue ? 1 : 0) + (onValueChangedInfo.HasValue ? 1 : 0) + (showRequiredIcon ? 1 : 0) + (readOnlyInfo.HasValue ? 1 : 0);
 
             if (buttonCount == 0)
             {
@@ -89,7 +90,13 @@ namespace VahTyah
             float totalButtonWidth = buttonCount * BUTTON_WIDTH + (buttonCount - 1) * BUTTON_SPACING;
 
             Rect fieldRect = new Rect(rect.x, rect.y, rect.width - totalButtonWidth - 2, rect.height);
-            EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            
+            // Check if ReadOnly and locked
+            bool isLocked = readOnlyInfo.HasValue && propertyGroup.ReadOnlyDrawer != null && propertyGroup.ReadOnlyDrawer.IsLocked(property.propertyPath);
+            using (new EditorGUI.DisabledScope(isLocked))
+            {
+                EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            }
 
             float buttonX = rect.xMax - totalButtonWidth;
 
@@ -97,6 +104,13 @@ namespace VahTyah
             {
                 Rect iconRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
                 propertyGroup.RequiredDrawer.DrawIcon(iconRect, property, requiredInfo.Value.attr);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
+            }
+
+            if (readOnlyInfo.HasValue && propertyGroup.ReadOnlyDrawer != null)
+            {
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                propertyGroup.ReadOnlyDrawer.DrawLockButton(buttonRect, property);
                 buttonX += BUTTON_WIDTH + BUTTON_SPACING;
             }
 

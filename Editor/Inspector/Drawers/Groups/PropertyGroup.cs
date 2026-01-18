@@ -26,10 +26,12 @@ namespace VahTyah
         public Dictionary<string, (FieldInfo field, AssetRefAttribute attr)> AssetRefAttributes { get; }
         public Dictionary<string, (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)> OnValueChangedAttributes { get; }
         public Dictionary<string, (FieldInfo field, RequiredAttribute attr)> RequiredAttributes { get; }
+        public Dictionary<string, (FieldInfo field, ReadOnlyAttribute attr)> ReadOnlyAttributes { get; }
         public AutoRefDrawer AutoRefDrawer { get; private set; }
         public AssetRefDrawer AssetRefDrawer { get; private set; }
         public OnValueChangedDrawer OnValueChangedDrawer { get; private set; }
         public RequiredDrawer RequiredDrawer { get; private set; }
+        public ReadOnlyDrawer ReadOnlyDrawer { get; private set; }
         public Object Target { get; private set; }
         public Object[] Targets { get; private set; }
 
@@ -42,6 +44,7 @@ namespace VahTyah
             AssetRefAttributes = new Dictionary<string, (FieldInfo, AssetRefAttribute)>();
             OnValueChangedAttributes = new Dictionary<string, (FieldInfo, OnValueChangedAttribute[], MethodInfo[])>();
             RequiredAttributes = new Dictionary<string, (FieldInfo, RequiredAttribute)>();
+            ReadOnlyAttributes = new Dictionary<string, (FieldInfo, ReadOnlyAttribute)>();
         }
 
         public void SetAutoRefDrawer(AutoRefDrawer drawer, Object target)
@@ -66,6 +69,11 @@ namespace VahTyah
             RequiredDrawer = drawer;
         }
 
+        public void SetReadOnlyDrawer(ReadOnlyDrawer drawer)
+        {
+            ReadOnlyDrawer = drawer;
+        }
+
         public void AddAutoRefAttribute(string propertyPath, FieldInfo field, AutoRefAttribute attribute)
         {
             AutoRefAttributes[propertyPath] = (field, attribute);
@@ -86,6 +94,11 @@ namespace VahTyah
             RequiredAttributes[propertyPath] = (field, attribute);
         }
 
+        public void AddReadOnlyAttribute(string propertyPath, FieldInfo field, ReadOnlyAttribute attribute)
+        {
+            ReadOnlyAttributes[propertyPath] = (field, attribute);
+        }
+
         public bool HasAutoRef(SerializedProperty property)
         {
             return AutoRefAttributes.ContainsKey(property.propertyPath);
@@ -104,6 +117,11 @@ namespace VahTyah
         public bool HasRequired(SerializedProperty property)
         {
             return RequiredAttributes.ContainsKey(property.propertyPath);
+        }
+
+        public bool HasReadOnly(SerializedProperty property)
+        {
+            return ReadOnlyAttributes.ContainsKey(property.propertyPath);
         }
 
         public (FieldInfo field, AutoRefAttribute attr)? GetAutoRefAttribute(SerializedProperty property)
@@ -130,6 +148,13 @@ namespace VahTyah
         public (FieldInfo field, RequiredAttribute attr)? GetRequiredAttribute(SerializedProperty property)
         {
             if (RequiredAttributes.TryGetValue(property.propertyPath, out var info))
+                return info;
+            return null;
+        }
+
+        public (FieldInfo field, ReadOnlyAttribute attr)? GetReadOnlyAttribute(SerializedProperty property)
+        {
+            if (ReadOnlyAttributes.TryGetValue(property.propertyPath, out var info))
                 return info;
             return null;
         }

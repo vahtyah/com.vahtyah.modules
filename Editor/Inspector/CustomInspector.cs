@@ -30,6 +30,7 @@ namespace VahTyah
         private Dictionary<string, (FieldInfo field, AssetRefAttribute attr)> assetRefProperties;
         private Dictionary<string, (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)> onValueChangedProperties;
         private Dictionary<string, (FieldInfo field, RequiredAttribute attr)> requiredProperties;
+        private Dictionary<string, (FieldInfo field, ReadOnlyAttribute attr)> readOnlyProperties;
         private SerializedProperty scriptProperty;
 
         private List<(MethodInfo method, ButtonAttribute attribute)> buttonMethods;
@@ -39,6 +40,7 @@ namespace VahTyah
         private OnValueChangedHandler onValueChangedHandler;
         private OnValueChangedDrawer onValueChangedDrawer;
         private RequiredDrawer requiredDrawer;
+        private ReadOnlyDrawer readOnlyDrawer;
 
         protected virtual void OnEnable()
         {
@@ -55,6 +57,7 @@ namespace VahTyah
             onValueChangedHandler = new OnValueChangedHandler(targets, serializedObject);
             onValueChangedDrawer = new OnValueChangedDrawer();
             requiredDrawer = new RequiredDrawer();
+            readOnlyDrawer = new ReadOnlyDrawer();
 
             CollectProperties();
             CollectButtonMethods();
@@ -72,6 +75,7 @@ namespace VahTyah
             assetRefProperties = new Dictionary<string, (FieldInfo, AssetRefAttribute)>();
             onValueChangedProperties = new Dictionary<string, (FieldInfo, OnValueChangedAttribute[], MethodInfo[])>();
             requiredProperties = new Dictionary<string, (FieldInfo, RequiredAttribute)>();
+            readOnlyProperties = new Dictionary<string, (FieldInfo, ReadOnlyAttribute)>();
 
             Dictionary<string, PropertyGroup> groupsDict = new Dictionary<string, PropertyGroup>();
 
@@ -97,6 +101,7 @@ namespace VahTyah
                     AssetRefAttribute assetRefAttr = fieldInfo.GetCustomAttribute<AssetRefAttribute>();
                     OnValueChangedAttribute[] onValueChangedAttrs = fieldInfo.GetCustomAttributes<OnValueChangedAttribute>().ToArray();
                     RequiredAttribute requiredAttr = fieldInfo.GetCustomAttribute<RequiredAttribute>();
+                    ReadOnlyAttribute readOnlyAttr = fieldInfo.GetCustomAttribute<ReadOnlyAttribute>();
 
                     SerializedProperty targetProperty = serializedObject.FindProperty(iterator.propertyPath);
 
@@ -123,6 +128,12 @@ namespace VahTyah
                     if (requiredAttr != null)
                     {
                         requiredProperties[iterator.propertyPath] = (fieldInfo, requiredAttr);
+                    }
+
+                    // Store ReadOnly attribute if present
+                    if (readOnlyAttr != null)
+                    {
+                        readOnlyProperties[iterator.propertyPath] = (fieldInfo, readOnlyAttr);
                     }
 
                     if (groupAttr != null)
@@ -159,6 +170,12 @@ namespace VahTyah
                         if (requiredAttr != null)
                         {
                             group.AddRequiredAttribute(iterator.propertyPath, fieldInfo, requiredAttr);
+                        }
+
+                        // Also add ReadOnly to group
+                        if (readOnlyAttr != null)
+                        {
+                            group.AddReadOnlyAttribute(iterator.propertyPath, fieldInfo, readOnlyAttr);
                         }
                     }
                     else
@@ -242,6 +259,7 @@ namespace VahTyah
                 group.SetAssetRefDrawer(assetRefDrawer);
                 group.SetOnValueChangedDrawer(onValueChangedDrawer, targets);
                 group.SetRequiredDrawer(requiredDrawer);
+                group.SetReadOnlyDrawer(readOnlyDrawer);
                 group.Draw();
             }
 
@@ -260,9 +278,10 @@ namespace VahTyah
             bool hasAssetRef = assetRefProperties.TryGetValue(property.propertyPath, out var assetRefInfo);
             bool hasOnValueChanged = onValueChangedProperties.TryGetValue(property.propertyPath, out var onValueChangedInfo);
             bool hasRequired = requiredProperties.TryGetValue(property.propertyPath, out var requiredInfo);
+            bool hasReadOnly = readOnlyProperties.TryGetValue(property.propertyPath, out var readOnlyInfo);
             bool showRequiredIcon = hasRequired && requiredDrawer.ShouldShowIcon(property);
 
-            int buttonCount = (hasAutoRef ? 1 : 0) + (hasAssetRef ? 1 : 0) + (hasOnValueChanged ? 1 : 0) + (showRequiredIcon ? 1 : 0);
+            int buttonCount = (hasAutoRef ? 1 : 0) + (hasAssetRef ? 1 : 0) + (hasOnValueChanged ? 1 : 0) + (showRequiredIcon ? 1 : 0) + (hasReadOnly ? 1 : 0);
 
             if (buttonCount == 0)
             {
@@ -278,7 +297,13 @@ namespace VahTyah
             Rect rect = GUILayoutUtility.GetRect(0, height, GUILayout.ExpandWidth(true));
 
             Rect fieldRect = new Rect(rect.x, rect.y, rect.width - totalButtonWidth - 2, rect.height);
-            EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            
+            // Check if ReadOnly and locked
+            bool isLocked = hasReadOnly && readOnlyDrawer.IsLocked(property.propertyPath);
+            using (new EditorGUI.DisabledScope(isLocked))
+            {
+                EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
+            }
 
             float buttonX = rect.xMax - totalButtonWidth;
 
@@ -286,6 +311,13 @@ namespace VahTyah
             {
                 Rect iconRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
                 requiredDrawer.DrawIcon(iconRect, property, requiredInfo.attr);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
+            }
+
+            if (hasReadOnly)
+            {
+                Rect buttonRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                readOnlyDrawer.DrawLockButton(buttonRect, property);
                 buttonX += BUTTON_WIDTH + BUTTON_SPACING;
             }
 
