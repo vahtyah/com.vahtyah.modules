@@ -28,7 +28,13 @@ namespace VahTyah
                 GUIContent buttonContent = EditorGUIUtility.IconContent("Refresh");
                 buttonContent.tooltip = GetTooltip(attribute);
 
-                if (GUI.Button(buttonRect, buttonContent, EditorStyles.miniButton))
+                GUIStyle centeredButton = new GUIStyle(EditorStyles.miniButton)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    padding = new RectOffset(0, 0, 0, 0)
+                };
+
+                if (GUI.Button(buttonRect, buttonContent, centeredButton))
                 {
                     FindAndAssign(property, attribute, fieldInfo, target, silent: false);
                 }

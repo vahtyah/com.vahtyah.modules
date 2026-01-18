@@ -73,8 +73,10 @@ namespace VahTyah
             var autoRefInfo = propertyGroup.GetAutoRefAttribute(property);
             var assetRefInfo = propertyGroup.GetAssetRefAttribute(property);
             var onValueChangedInfo = propertyGroup.GetOnValueChangedAttribute(property);
+            var requiredInfo = propertyGroup.GetRequiredAttribute(property);
+            bool showRequiredIcon = requiredInfo.HasValue && propertyGroup.RequiredDrawer != null && propertyGroup.RequiredDrawer.ShouldShowIcon(property);
 
-            int buttonCount = (autoRefInfo.HasValue ? 1 : 0) + (assetRefInfo.HasValue ? 1 : 0) + (onValueChangedInfo.HasValue ? 1 : 0);
+            int buttonCount = (autoRefInfo.HasValue ? 1 : 0) + (assetRefInfo.HasValue ? 1 : 0) + (onValueChangedInfo.HasValue ? 1 : 0) + (showRequiredIcon ? 1 : 0);
 
             if (buttonCount == 0)
             {
@@ -90,6 +92,13 @@ namespace VahTyah
             EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
 
             float buttonX = rect.xMax - totalButtonWidth;
+
+            if (showRequiredIcon)
+            {
+                Rect iconRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                propertyGroup.RequiredDrawer.DrawIcon(iconRect, property, requiredInfo.Value.attr);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
+            }
 
             if (autoRefInfo.HasValue && propertyGroup.AutoRefDrawer != null)
             {

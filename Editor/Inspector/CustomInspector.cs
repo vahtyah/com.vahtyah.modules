@@ -29,6 +29,7 @@ namespace VahTyah
         private Dictionary<string, (FieldInfo field, AutoRefAttribute attr)> autoRefProperties;
         private Dictionary<string, (FieldInfo field, AssetRefAttribute attr)> assetRefProperties;
         private Dictionary<string, (FieldInfo field, OnValueChangedAttribute[] attrs, MethodInfo[] methods)> onValueChangedProperties;
+        private Dictionary<string, (FieldInfo field, RequiredAttribute attr)> requiredProperties;
         private SerializedProperty scriptProperty;
 
         private List<(MethodInfo method, ButtonAttribute attribute)> buttonMethods;
@@ -37,6 +38,7 @@ namespace VahTyah
         private AssetRefDrawer assetRefDrawer;
         private OnValueChangedHandler onValueChangedHandler;
         private OnValueChangedDrawer onValueChangedDrawer;
+        private RequiredDrawer requiredDrawer;
 
         protected virtual void OnEnable()
         {
@@ -52,6 +54,7 @@ namespace VahTyah
             assetRefDrawer = new AssetRefDrawer();
             onValueChangedHandler = new OnValueChangedHandler(targets, serializedObject);
             onValueChangedDrawer = new OnValueChangedDrawer();
+            requiredDrawer = new RequiredDrawer();
 
             CollectProperties();
             CollectButtonMethods();
@@ -68,6 +71,7 @@ namespace VahTyah
             autoRefProperties = new Dictionary<string, (FieldInfo, AutoRefAttribute)>();
             assetRefProperties = new Dictionary<string, (FieldInfo, AssetRefAttribute)>();
             onValueChangedProperties = new Dictionary<string, (FieldInfo, OnValueChangedAttribute[], MethodInfo[])>();
+            requiredProperties = new Dictionary<string, (FieldInfo, RequiredAttribute)>();
 
             Dictionary<string, PropertyGroup> groupsDict = new Dictionary<string, PropertyGroup>();
 
@@ -92,6 +96,7 @@ namespace VahTyah
                     AutoRefAttribute autoRefAttr = fieldInfo.GetCustomAttribute<AutoRefAttribute>();
                     AssetRefAttribute assetRefAttr = fieldInfo.GetCustomAttribute<AssetRefAttribute>();
                     OnValueChangedAttribute[] onValueChangedAttrs = fieldInfo.GetCustomAttributes<OnValueChangedAttribute>().ToArray();
+                    RequiredAttribute requiredAttr = fieldInfo.GetCustomAttribute<RequiredAttribute>();
 
                     SerializedProperty targetProperty = serializedObject.FindProperty(iterator.propertyPath);
 
@@ -112,6 +117,12 @@ namespace VahTyah
                     {
                         MethodInfo[] methods = onValueChangedHandler.RegisterField(iterator.propertyPath, fieldInfo, onValueChangedAttrs, target.GetType());
                         onValueChangedProperties[iterator.propertyPath] = (fieldInfo, onValueChangedAttrs, methods);
+                    }
+
+                    // Store Required attribute if present
+                    if (requiredAttr != null)
+                    {
+                        requiredProperties[iterator.propertyPath] = (fieldInfo, requiredAttr);
                     }
 
                     if (groupAttr != null)
@@ -142,6 +153,12 @@ namespace VahTyah
                         if (onValueChangedAttrs.Length > 0 && onValueChangedProperties.TryGetValue(iterator.propertyPath, out var ovcInfo))
                         {
                             group.AddOnValueChangedAttribute(iterator.propertyPath, fieldInfo, ovcInfo.attrs, ovcInfo.methods);
+                        }
+
+                        // Also add Required to group
+                        if (requiredAttr != null)
+                        {
+                            group.AddRequiredAttribute(iterator.propertyPath, fieldInfo, requiredAttr);
                         }
                     }
                     else
@@ -224,6 +241,7 @@ namespace VahTyah
                 group.SetAutoRefDrawer(autoRefDrawer, target);
                 group.SetAssetRefDrawer(assetRefDrawer);
                 group.SetOnValueChangedDrawer(onValueChangedDrawer, targets);
+                group.SetRequiredDrawer(requiredDrawer);
                 group.Draw();
             }
 
@@ -241,8 +259,10 @@ namespace VahTyah
             bool hasAutoRef = autoRefProperties.TryGetValue(property.propertyPath, out var autoRefInfo);
             bool hasAssetRef = assetRefProperties.TryGetValue(property.propertyPath, out var assetRefInfo);
             bool hasOnValueChanged = onValueChangedProperties.TryGetValue(property.propertyPath, out var onValueChangedInfo);
+            bool hasRequired = requiredProperties.TryGetValue(property.propertyPath, out var requiredInfo);
+            bool showRequiredIcon = hasRequired && requiredDrawer.ShouldShowIcon(property);
 
-            int buttonCount = (hasAutoRef ? 1 : 0) + (hasAssetRef ? 1 : 0) + (hasOnValueChanged ? 1 : 0);
+            int buttonCount = (hasAutoRef ? 1 : 0) + (hasAssetRef ? 1 : 0) + (hasOnValueChanged ? 1 : 0) + (showRequiredIcon ? 1 : 0);
 
             if (buttonCount == 0)
             {
@@ -261,6 +281,13 @@ namespace VahTyah
             EditorGUI.PropertyField(fieldRect, property, new GUIContent(property.displayName), true);
 
             float buttonX = rect.xMax - totalButtonWidth;
+
+            if (showRequiredIcon)
+            {
+                Rect iconRect = new Rect(buttonX, rect.y, BUTTON_WIDTH, EditorGUIUtility.singleLineHeight);
+                requiredDrawer.DrawIcon(iconRect, property, requiredInfo.attr);
+                buttonX += BUTTON_WIDTH + BUTTON_SPACING;
+            }
 
             if (hasAutoRef)
             {

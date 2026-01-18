@@ -24,7 +24,13 @@ namespace VahTyah
             GUIContent buttonContent = EditorGUIUtility.IconContent("PlayButton");
             buttonContent.tooltip = GetTooltip(attributes);
 
-            if (GUI.Button(buttonRect, buttonContent, EditorStyles.miniButton))
+            GUIStyle centeredButton = new GUIStyle(EditorStyles.miniButton)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                padding = new RectOffset(0, 0, 0, 0)
+            };
+
+            if (GUI.Button(buttonRect, buttonContent, centeredButton))
             {
                 InvokeCallbacks(attributes, methods, property, targets);
             }
